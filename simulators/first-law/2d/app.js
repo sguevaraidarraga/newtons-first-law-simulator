@@ -1,13 +1,17 @@
-import { integrate2D } from '../../src/physics.js';
-import { drawArrow, drawBall } from '../../src/draw.js';
-import { ensureButton, setButtonLabel } from '../../src/ui.js';
+import { integrate2D } from '../../../src/physics.js';
+import { drawArrow, drawBall } from '../../../src/draw.js';
+import { COLOR_VELOCITY, COLOR_GRAVITY, COLOR_FRICTION, COLOR_NET } from '../../../src/constants.js';
+import { ensureButton, setButtonLabel } from '../../../src/ui.js';
 
+/**
+ * Initialize the 2D first-law simulator: bind DOM, controls and run loop.
+ */
 export default function init2D(){
+  console.log('init2D: initializer running');
   const canvas = document.getElementById('sim');
   if (!canvas) return;
-  // Arrange layout: support optional slots via data-slot attributes
   (function arrangeLayout(){
-    const controls = canvas.nextElementSibling; // expected controls div
+    const controls = canvas.nextElementSibling;
     const info = controls ? controls.nextElementSibling : null;
     const slotVisual = document.querySelector('[data-slot="visual"]');
     const slotControls = document.querySelector('[data-slot="controls"]');
@@ -72,9 +76,12 @@ export default function init2D(){
   const initialState = { x: state.x, y: state.y, vx: parseFloat(velxInitEl?.value||0), vy: parseFloat(velyInitEl?.value||0), mass: state.mass };
   const resetBtn = ensureButton(startBtn.parentElement, 'reset', 'Reset');
 
+  /**
+   * Reset the simulator state and UI to initial values.
+   */
   function doReset(){
     running = false; setButtonLabel(startBtn, 'Iniciar');
-    impulseMode = false; if (impulseBtn) impulseBtn.textContent = 'Impulso (clic en lienzo)';
+    impulseMode = false; if (impulseBtn) { impulseBtn.textContent = 'Impulso'; impulseBtn.classList.remove('active'); impulseBtn.setAttribute('aria-pressed','false'); }
     state.x = initialState.x; state.y = initialState.y; state.vx = initialState.vx; state.vy = initialState.vy; state.mass = initialState.mass;
     last = null; lastForces = { Fx:0, Fy:0, FfricX:0, FfricY:0, FnetX:0, FnetY:0 };
     if (massVal) massVal.textContent = parseFloat(state.mass).toFixed(1);
@@ -90,7 +97,6 @@ export default function init2D(){
   }
   resetBtn.addEventListener('click', doReset);
 
-  // initialize displayed values
   if (fxVal) fxVal.textContent = fxEl.value;
   if (fyVal) fyVal.textContent = fyEl.value;
   if (FappxSpan) FappxSpan.textContent = '0';
@@ -104,7 +110,6 @@ export default function init2D(){
   if (velxInitVal) velxInitVal.textContent = parseFloat(velxInitEl?.value||0).toFixed(1);
   if (velyInitVal) velyInitVal.textContent = parseFloat(velyInitEl?.value||0).toFixed(1);
 
-  // inputs
   fxEl.addEventListener('input', ()=>{ if (fxVal) fxVal.textContent = fxEl.value; });
   fyEl.addEventListener('input', ()=>{ if (fyVal) fyVal.textContent = fyEl.value; });
   massEl.addEventListener('input', ()=>{ state.mass = parseFloat(massEl.value); if (massVal) massVal.textContent = parseFloat(massEl.value).toFixed(1); });
@@ -127,16 +132,15 @@ export default function init2D(){
     ctx.fillRect(0,0,canvas.width,canvas.height);
     const px = state.x * 60 + 40; const py = state.y * 60 + 40;
     drawBall(ctx, px, py, 10);
-    drawArrow(ctx, px, py, px + state.vx*12, py + state.vy*12, '#2a9d8f');
-    // draw applied, friction and net forces
+    drawArrow(ctx, px, py, px + state.vx*12, py + state.vy*12, COLOR_VELOCITY);
     if (Math.hypot(lastForces.Fx, lastForces.Fy) > 1e-3){
-      drawArrow(ctx, px, py, px + lastForces.Fx*0.6, py + lastForces.Fy*0.6, '#e76f51');
+      drawArrow(ctx, px, py, px + lastForces.Fx*0.6, py + lastForces.Fy*0.6, COLOR_GRAVITY);
     }
     if (Math.hypot(lastForces.FfricX, lastForces.FfricY) > 1e-3){
-      drawArrow(ctx, px, py, px + lastForces.FfricX*0.6, py + lastForces.FfricY*0.6, '#6c757d');
+      drawArrow(ctx, px, py, px + lastForces.FfricX*0.6, py + lastForces.FfricY*0.6, COLOR_FRICTION);
     }
     if (Math.hypot(lastForces.FnetX, lastForces.FnetY) > 1e-3){
-      drawArrow(ctx, px, py, px + lastForces.FnetX*0.6, py + lastForces.FnetY*0.6, '#d62828');
+      drawArrow(ctx, px, py, px + lastForces.FnetX*0.6, py + lastForces.FnetY*0.6, COLOR_NET);
     }
   }
 
@@ -153,7 +157,6 @@ export default function init2D(){
       }
     }
     const FxNet = Fx + FfricX; const FyNet = Fy + FfricY;
-    // store for drawing/debug
     lastForces.Fx = Fx; lastForces.Fy = Fy;
     lastForces.FfricX = FfricX; lastForces.FfricY = FfricY;
     lastForces.FnetX = FxNet; lastForces.FnetY = FyNet;
@@ -176,7 +179,7 @@ export default function init2D(){
   function loop(ts){ if (!running) return; if (!last) last = ts; const dt = Math.min(0.05, (ts-last)/1000); last = ts; step(dt); draw(); requestAnimationFrame(loop); }
 
   startBtn.addEventListener('click', ()=>{ running = !running; startBtn.textContent = running? 'Pausar' : 'Iniciar'; if (running){ last=null; requestAnimationFrame(loop); } });
-  impulseBtn.addEventListener('click', ()=>{ impulseMode = !impulseMode; impulseBtn.textContent = impulseMode? 'Impulso: clic para aplicar' : 'Impulso (clic en lienzo)'; });
+  impulseBtn.addEventListener('click', ()=>{ impulseMode = !impulseMode; if (impulseBtn) { impulseBtn.classList.toggle('active', impulseMode); impulseBtn.setAttribute('aria-pressed', String(!!impulseMode)); } });
   massEl.addEventListener('input', ()=> state.mass = parseFloat(massEl.value));
   draw();
 }

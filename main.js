@@ -1,4 +1,10 @@
-// main.js now loads a per-simulator app module dynamically based on DOM
+/**
+ * Show an error overlay with a message and optional error details.
+ *
+ * Args:
+ *   message (string): Message to display.
+ *   err (Error|any): Optional error object for logging.
+ */
 function showError(message, err){
   console.error(message, err);
   const el = document.createElement('div');
@@ -8,21 +14,27 @@ function showError(message, err){
   document.body.appendChild(el);
 }
 
+/**
+ * Load the appropriate simulator app module depending on DOM controls present.
+ *
+ * Behavior: imports and runs the default export of the detected simulator module.
+ */
 async function loadApp(){
   try{
     if (location.protocol === 'file:'){
       showError('Abre las páginas mediante un servidor local (ej. python -m http.server)');
       return;
     }
-    // Decide by presence of known controls
     if (document.getElementById('vel')){
-      const mod = await import('./simulators/1d/app.js');
+      const mod = await import('./simulators/first-law/1d/app.js');
       mod.default();
     } else if (document.getElementById('fx')){
-      const mod = await import('./simulators/2d/app.js');
+      const mod = await import('./simulators/first-law/2d/app.js');
+      mod.default();
+    } else if (document.getElementById('angle')){
+      const mod = await import('./simulators/second-law/app.js');
       mod.default();
     } else {
-      // no sim controls on page
     }
   } catch(err){ showError('Error cargando el simulador', err); }
 }

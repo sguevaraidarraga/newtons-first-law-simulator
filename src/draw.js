@@ -1,3 +1,15 @@
+/**
+ * Draws an arrow from (x1, y1) to (x2, y2) on the provided canvas context.
+ *
+ * Args:
+ *   ctx (CanvasRenderingContext2D): The drawing context.
+ *   x1 (number), y1 (number): Start coordinates in pixels.
+ *   x2 (number), y2 (number): End coordinates (arrow tip) in pixels.
+ *   color (string): CSS color used for stroke and fill.
+ *
+ * Returns:
+ *   void
+ */
 export function drawArrow(ctx, x1,y1,x2,y2, color='#000'){
   ctx.save();
   ctx.strokeStyle = color;
@@ -18,6 +30,18 @@ export function drawArrow(ctx, x1,y1,x2,y2, color='#000'){
   ctx.restore();
 }
 
+/**
+ * Draws a filled ball (circle) with a stroke on the provided canvas context.
+ *
+ * Args:
+ *   ctx (CanvasRenderingContext2D): The drawing context.
+ *   x (number), y (number): Center coordinates in pixels.
+ *   r (number): Radius in pixels.
+ *   color (string): Fill color.
+ *
+ * Returns:
+ *   void
+ */
 export function drawBall(ctx, x,y,r,color='#0077cc'){
   ctx.fillStyle = color;
   ctx.beginPath();

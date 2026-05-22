@@ -1,13 +1,17 @@
-import { computeFriction, computeNetForce, integrate1D } from '../../src/physics.js';
-import { drawArrow, drawBall } from '../../src/draw.js';
-import { ensureButton, setButtonLabel } from '../../src/ui.js';
+import { computeFriction, computeNetForce, integrate1D } from '../../../src/physics.js';
+import { drawArrow, drawBall } from '../../../src/draw.js';
+import { COLOR_VELOCITY, COLOR_GRAVITY, COLOR_FRICTION, COLOR_NET } from '../../../src/constants.js';
+import { ensureButton, setButtonLabel } from '../../../src/ui.js';
 
+/**
+ * Initialize the 1D first-law simulator UI, controls and animation loop.
+ */
 export default function init1D(){
+  console.log('init1D: initializer running');
   const canvas = document.getElementById('sim');
   if (!canvas) return;
-  // Arrange layout: support optional slots via data-slot attributes
   (function arrangeLayout(){
-    const controls = canvas.nextElementSibling; // expected controls div
+    const controls = canvas.nextElementSibling;
     const info = controls ? controls.nextElementSibling : null;
     const slotVisual = document.querySelector('[data-slot="visual"]');
     const slotControls = document.querySelector('[data-slot="controls"]');
@@ -18,7 +22,7 @@ export default function init1D(){
       if (slotInfo && info) slotInfo.appendChild(info);
       return;
     }
-    // fallback: create a simple flex wrapper next to current elements
+    
     const parent = canvas.parentElement;
     if (!parent.classList.contains('sim-wrapper')){
       const wrapper = document.createElement('div');
@@ -33,10 +37,10 @@ export default function init1D(){
     }
   })();
   const ctx = canvas.getContext('2d');
-  // ensure canvas visible and sized
+  
   canvas.style.display = 'block';
   canvas.style.maxWidth = '100%';
-  // enforce width/height from attributes if present
+  
   const attrW = parseInt(canvas.getAttribute('width')) || canvas.width;
   const attrH = parseInt(canvas.getAttribute('height')) || canvas.height;
   canvas.width = attrW;
@@ -65,9 +69,11 @@ export default function init1D(){
   let running = false; let last = null;
   let lastForces = { Fapp: 0, Ffric: 0, Fnet: 0 };
   const initialState = { x: state.x, vx: state.vx, ax: state.ax, mass: state.mass };
-  // ensure reset button exists (in HTML or create it)
   const resetBtn = ensureButton(startBtn.parentElement, 'reset', 'Reset');
 
+  /**
+   * Reset the simulator state and UI to the initial state.
+   */
   function doReset(){
     running = false; setButtonLabel(startBtn, 'Iniciar');
     state.x = initialState.x; state.vx = initialState.vx; state.ax = initialState.ax; state.mass = initialState.mass;
@@ -81,44 +87,48 @@ export default function init1D(){
   }
   resetBtn.addEventListener('click', doReset);
 
-  // initialize displayed values
+  
   if (massValEl) massValEl.textContent = parseFloat(massEl.value).toFixed(1);
   if (velValEl) velValEl.textContent = parseFloat(velEl.value).toFixed(1);
   if (forceValEl) forceValEl.textContent = parseFloat(forceEl.value || 0).toString();
   if (muValEl) muValEl.textContent = parseFloat(muEl.value || 0).toFixed(2);
 
-  // update on input
+  
   massEl.addEventListener('input', ()=>{ state.mass = parseFloat(massEl.value); if (massValEl) massValEl.textContent = parseFloat(massEl.value).toFixed(1); });
   velEl.addEventListener('input', ()=>{ state.vx = parseFloat(velEl.value); if (velValEl) velValEl.textContent = parseFloat(velEl.value).toFixed(1); });
   forceEl.addEventListener('input', ()=>{ if (forceValEl) forceValEl.textContent = parseFloat(forceEl.value).toString(); });
   muEl.addEventListener('input', ()=>{ if (muValEl) muValEl.textContent = parseFloat(muEl.value).toFixed(2); });
 
+  /**
+   * Render the 1D simulation visuals and force arrows.
+   */
   function draw(){
-    // debug fill to ensure drawing region
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.fillStyle = 'rgba(255,255,255,0.0)';
     ctx.fillRect(0,0,canvas.width,canvas.height);
     const px = 40 + state.x * 60;
     const py = canvas.height/2;
     drawBall(ctx, px, py, 12);
-    drawArrow(ctx, px, py-20, px + state.vx*15, py-20, '#2a9d8f');
-    // draw applied, friction and net forces for debugging
+    drawArrow(ctx, px, py-20, px + state.vx*15, py-20, COLOR_VELOCITY);
+    
     if (Math.abs(lastForces.Fapp) > 1e-3){
-      drawArrow(ctx, px, py+10, px + lastForces.Fapp*0.6, py+10, '#e76f51');
+      drawArrow(ctx, px, py+10, px + lastForces.Fapp*0.6, py+10, COLOR_GRAVITY);
     }
     if (Math.abs(lastForces.Ffric) > 1e-3){
-      drawArrow(ctx, px, py+30, px + lastForces.Ffric*0.6, py+30, '#6c757d');
+      drawArrow(ctx, px, py+30, px + lastForces.Ffric*0.6, py+30, COLOR_FRICTION);
     }
     if (Math.abs(lastForces.Fnet) > 1e-3){
-      drawArrow(ctx, px, py+50, px + lastForces.Fnet*0.6, py+50, '#d62828');
+      drawArrow(ctx, px, py+50, px + lastForces.Fnet*0.6, py+50, COLOR_NET);
     }
   }
 
+  /**
+   * Advance physics by dt seconds and update UI labels.
+   */
   function step(dt){
     const Fapp = contEl.checked ? parseFloat(forceEl.value) : 0;
     const Ffric = computeFriction(state.mass, state.vx, parseFloat(muEl.value||0), fricEl.checked);
     const Fnet = computeNetForce(Fapp, Ffric);
-    // store for drawing/debug
     lastForces.Fapp = Fapp;
     lastForces.Ffric = Ffric;
     lastForces.Fnet = Fnet;
@@ -138,6 +148,5 @@ export default function init1D(){
 
   startBtn.addEventListener('click', ()=>{ running = !running; startBtn.textContent = running? 'Pausar' : 'Iniciar'; if (running){ last=null; requestAnimationFrame(loop); } });
   impulseBtn.addEventListener('click', ()=>{ const J = parseFloat(forceEl.value||0); state.vx += J / state.mass; });
-  // already wired above
   draw();
 }

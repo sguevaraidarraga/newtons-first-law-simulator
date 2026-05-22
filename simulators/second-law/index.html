@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Simulador 1D</title>
+  <title>Segunda Ley — Plano Inclinado</title>
   <style>body{font-family:Arial;margin:12px}canvas{background:#f7f7f7;border:1px solid #ddd}</style>
 </head>
 <body>
-  <h2>Simulador 1D — Primera Ley de Newton</h2>
+  <h2>Segunda Ley de Newton — Plano Inclinado</h2>
 
   <style>
     .sim-container { display:flex; gap:16px; align-items:flex-start; }
@@ -21,26 +21,18 @@
 
   <div class="sim-container">
     <div data-slot="visual">
-      <canvas id="sim" width="800" height="200"></canvas>
+      <canvas id="sim" width="800" height="300"></canvas>
     </div>
 
     <div data-slot="controls" class="controls">
       <div class="control">
+        <label for="angle">Ángulo (deg) <span id="angleVal">30</span></label>
+          <input id="angle" type="range" min="0" max="90" step="1" value="30">
+      </div>
+
+      <div class="control">
         <label for="mass">Masa (kg) <span id="massVal">1.0</span></label>
         <input id="mass" type="range" min="0.1" max="10" step="0.1" value="1">
-      </div>
-
-      <div class="control">
-        <label for="vel">Velocidad inicial (m/s) <span id="velVal">2.0</span></label>
-        <input id="vel" type="range" min="-10" max="10" step="0.1" value="2">
-      </div>
-
-      <div class="control">
-        <label for="force">Fuerza aplicada (N) <span id="forceVal">0</span></label>
-        <input id="force" type="range" min="-50" max="50" step="1" value="0">
-        <div style="display:flex; gap:8px; align-items:center; margin-top:6px">
-          <input id="continuous" type="checkbox"><label for="continuous" style="margin:0">Fuerza continua</label>
-        </div>
       </div>
 
       <div class="control">
@@ -49,8 +41,17 @@
         <input id="mu" type="range" min="0" max="1" step="0.01" value="0.1">
       </div>
 
+      <div class="control">
+        <label for="initS">Posición inicial s (m) <span id="sVal">0.0</span></label>
+        <input id="initS" type="range" min="0" max="5" step="0.1" value="0">
+      </div>
+
+      <div class="control">
+        <label for="initV">Velocidad inicial (m/s) <span id="vVal">0.0</span></label>
+        <input id="initV" type="range" min="-10" max="10" step="0.1" value="0">
+      </div>
+
       <div class="buttons">
-        <button id="impulse">Aplicar impulso</button>
         <button id="start">Iniciar</button>
         <button id="reset">Reset</button>
         <a href="../../index.html" style="margin-left:8px">Volver</a>
@@ -59,11 +60,11 @@
   </div>
 
   <div data-slot="info" class="info">
-    Pos: <span id="pos">0</span> m — Vel: <span id="velDisp">0</span> m/s — Acel: <span id="acc">0</span> m/s²
+    s: <span id="sDisp">0</span> m — v: <span id="vDisp">0</span> m/s — a: <span id="aDisp">0</span> m/s²
     <br>
-    Fuerzas: F_aplicada: <span id="Fapp">0</span> N — F_fric: <span id="Ffric">0</span> N — F_net: <span id="Fnet">0</span> N
+    Fuerzas: F_net: <span id="Fnet">0</span> N
   </div>
 
-  <script type="module" src="../../main.js"></script>
+  <script type="module" src="./app.js"></script>
 </body>
 </html>

@@ -14,19 +14,44 @@
 </head>
 <body>
   <h1>Simuladores — Cinemática y Dinámica</h1>
-  <p>Elige un simulador para abrirlo en su propia página.</p>
-  <div class="grid">
+  <p>Elige la Ley de Newton que quieres explorar, luego selecciona un simulador.</p>
+
+  <div style="display:flex; gap:12px; margin-bottom:16px">
+    <button id="btnFirst" style="padding:10px 14px; border-radius:6px; border:1px solid #0077cc; background:#e8f4ff; cursor:pointer">Primera Ley</button>
+    <button id="btnSecond" style="padding:10px 14px; border-radius:6px; border:1px solid #0077cc; background:#fff; cursor:pointer">Segunda Ley</button>
+  </div>
+
+  <div id="firstList" class="grid" style="display:none">
     <div class="card">
       <h3>1D — Primera Ley de Newton</h3>
       <p>Objeto en una dimensión: velocidad constante sin fuerzas; aplica fuerzas o impulsos para ver efectos.</p>
-      <a class="button" href="simulators/1d/index.html">Abrir 1D</a>
+      <a class="button" href="simulators/first-law/1d/index.html">Abrir 1D</a>
     </div>
     <div class="card">
       <h3>2D — Movimiento en el plano</h3>
       <p>Simula movimiento en 2 dimensiones con fuerzas vectoriales, impulso y fricción opcional.</p>
-      <a class="button" href="simulators/2d/index.html">Abrir 2D</a>
+      <a class="button" href="simulators/first-law/2d/index.html">Abrir 2D</a>
     </div>
   </div>
+
+  <div id="secondList" class="grid" style="display:none">
+    <div class="card">
+      <h3>Plano inclinado — Segunda Ley</h3>
+      <p>Ejemplo claro para ver la descomposición de fuerzas, normal y fricción.</p>
+      <a class="button" href="simulators/second-law/index.html">Abrir Plano inclinado</a>
+    </div>
+  </div>
+
+  <script>
+    const btnFirst = document.getElementById('btnFirst');
+    const btnSecond = document.getElementById('btnSecond');
+    const firstList = document.getElementById('firstList');
+    const secondList = document.getElementById('secondList');
+    function showFirst(){ btnFirst.style.background = '#e8f4ff'; btnSecond.style.background = '#fff'; firstList.style.display = 'flex'; secondList.style.display = 'none'; }
+    function showSecond(){ btnSecond.style.background = '#e8f4ff'; btnFirst.style.background = '#fff'; secondList.style.display = 'flex'; firstList.style.display = 'none'; }
+    btnFirst.addEventListener('click', showFirst);
+    btnSecond.addEventListener('click', showSecond);
+  </script>
 
 </body>
 </html>
