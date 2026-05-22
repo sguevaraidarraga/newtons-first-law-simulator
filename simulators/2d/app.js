@@ -1,5 +1,6 @@
 import { integrate2D } from '../../src/physics.js';
 import { drawArrow, drawBall } from '../../src/draw.js';
+import { ensureButton, setButtonLabel } from '../../src/ui.js';
 
 export default function init2D(){
   const canvas = document.getElementById('sim');
@@ -54,6 +55,12 @@ export default function init2D(){
   const vely = document.getElementById('vely');
   const fxVal = document.getElementById('fxVal');
   const fyVal = document.getElementById('fyVal');
+  const FappxSpan = document.getElementById('Fappx');
+  const FappySpan = document.getElementById('Fappy');
+  const FfricxSpan = document.getElementById('Ffricx');
+  const FfricySpan = document.getElementById('Ffricy');
+  const FnetxSpan = document.getElementById('Fnetx');
+  const FnetySpan = document.getElementById('Fnety');
   const massVal = document.getElementById('massVal');
   const muVal = document.getElementById('muVal');
   const velxInitVal = document.getElementById('velxInitVal');
@@ -61,10 +68,37 @@ export default function init2D(){
 
   let state = { x: canvas.width/120, y: canvas.height/120, vx:0, vy:0, ax:0, ay:0, mass:parseFloat(massEl.value||1) };
   let running=false, last=null, impulseMode=false;
+  let lastForces = { Fx:0, Fy:0, FfricX:0, FfricY:0, FnetX:0, FnetY:0 };
+  const initialState = { x: state.x, y: state.y, vx: parseFloat(velxInitEl?.value||0), vy: parseFloat(velyInitEl?.value||0), mass: state.mass };
+  const resetBtn = ensureButton(startBtn.parentElement, 'reset', 'Reset');
+
+  function doReset(){
+    running = false; setButtonLabel(startBtn, 'Iniciar');
+    impulseMode = false; if (impulseBtn) impulseBtn.textContent = 'Impulso (clic en lienzo)';
+    state.x = initialState.x; state.y = initialState.y; state.vx = initialState.vx; state.vy = initialState.vy; state.mass = initialState.mass;
+    last = null; lastForces = { Fx:0, Fy:0, FfricX:0, FfricY:0, FnetX:0, FnetY:0 };
+    if (massVal) massVal.textContent = parseFloat(state.mass).toFixed(1);
+    if (velx) velx.textContent = state.vx.toFixed(1);
+    if (vely) vely.textContent = state.vy.toFixed(1);
+    if (FappxSpan) FappxSpan.textContent = '0.00';
+    if (FappySpan) FappySpan.textContent = '0.00';
+    if (FfricxSpan) FfricxSpan.textContent = '0.00';
+    if (FfricySpan) FfricySpan.textContent = '0.00';
+    if (FnetxSpan) FnetxSpan.textContent = '0.00';
+    if (FnetySpan) FnetySpan.textContent = '0.00';
+    draw();
+  }
+  resetBtn.addEventListener('click', doReset);
 
   // initialize displayed values
   if (fxVal) fxVal.textContent = fxEl.value;
   if (fyVal) fyVal.textContent = fyEl.value;
+  if (FappxSpan) FappxSpan.textContent = '0';
+  if (FappySpan) FappySpan.textContent = '0';
+  if (FfricxSpan) FfricxSpan.textContent = '0';
+  if (FfricySpan) FfricySpan.textContent = '0';
+  if (FnetxSpan) FnetxSpan.textContent = '0';
+  if (FnetySpan) FnetySpan.textContent = '0';
   if (massVal) massVal.textContent = parseFloat(massEl.value).toFixed(1);
   if (muVal) muVal.textContent = parseFloat(muEl.value||0).toFixed(2);
   if (velxInitVal) velxInitVal.textContent = parseFloat(velxInitEl?.value||0).toFixed(1);
@@ -94,8 +128,15 @@ export default function init2D(){
     const px = state.x * 60 + 40; const py = state.y * 60 + 40;
     drawBall(ctx, px, py, 10);
     drawArrow(ctx, px, py, px + state.vx*12, py + state.vy*12, '#2a9d8f');
-    if (contEl.checked && (Math.abs(parseFloat(fxEl.value))>0 || Math.abs(parseFloat(fyEl.value))>0)){
-      drawArrow(ctx, px, py, px + parseFloat(fxEl.value)*0.6, py + parseFloat(fyEl.value)*0.6, '#e76f51');
+    // draw applied, friction and net forces
+    if (Math.hypot(lastForces.Fx, lastForces.Fy) > 1e-3){
+      drawArrow(ctx, px, py, px + lastForces.Fx*0.6, py + lastForces.Fy*0.6, '#e76f51');
+    }
+    if (Math.hypot(lastForces.FfricX, lastForces.FfricY) > 1e-3){
+      drawArrow(ctx, px, py, px + lastForces.FfricX*0.6, py + lastForces.FfricY*0.6, '#6c757d');
+    }
+    if (Math.hypot(lastForces.FnetX, lastForces.FnetY) > 1e-3){
+      drawArrow(ctx, px, py, px + lastForces.FnetX*0.6, py + lastForces.FnetY*0.6, '#d62828');
     }
   }
 
@@ -112,6 +153,10 @@ export default function init2D(){
       }
     }
     const FxNet = Fx + FfricX; const FyNet = Fy + FfricY;
+    // store for drawing/debug
+    lastForces.Fx = Fx; lastForces.Fy = Fy;
+    lastForces.FfricX = FfricX; lastForces.FfricY = FfricY;
+    lastForces.FnetX = FxNet; lastForces.FnetY = FyNet;
     integrate2D(state, FxNet, FyNet, dt);
     const maxX = (canvas.width - 80)/60; const maxY = (canvas.height - 80)/60;
     if (state.x < 0){ state.x = 0; state.vx = 0; }
@@ -120,6 +165,12 @@ export default function init2D(){
     if (state.y > maxY){ state.y = maxY; state.vy = 0; }
     posx.textContent = state.x.toFixed(2); posy.textContent = state.y.toFixed(2);
     velx.textContent = state.vx.toFixed(2); vely.textContent = state.vy.toFixed(2);
+    if (FappxSpan) FappxSpan.textContent = (lastForces.Fx||0).toFixed(2);
+    if (FappySpan) FappySpan.textContent = (lastForces.Fy||0).toFixed(2);
+    if (FfricxSpan) FfricxSpan.textContent = (lastForces.FfricX||0).toFixed(2);
+    if (FfricySpan) FfricySpan.textContent = (lastForces.FfricY||0).toFixed(2);
+    if (FnetxSpan) FnetxSpan.textContent = (lastForces.FnetX||0).toFixed(2);
+    if (FnetySpan) FnetySpan.textContent = (lastForces.FnetY||0).toFixed(2);
   }
 
   function loop(ts){ if (!running) return; if (!last) last = ts; const dt = Math.min(0.05, (ts-last)/1000); last = ts; step(dt); draw(); requestAnimationFrame(loop); }

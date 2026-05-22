@@ -52,12 +52,17 @@
       <div class="buttons">
         <button id="impulse">Aplicar impulso</button>
         <button id="start">Iniciar</button>
+        <button id="reset">Reset</button>
         <a href="../../index.html" style="margin-left:8px">Volver</a>
       </div>
     </div>
   </div>
 
-  <div data-slot="info" class="info">Pos: <span id="pos">0</span> m — Vel: <span id="velDisp">0</span> m/s — Acel: <span id="acc">0</span> m/s²</div>
+  <div data-slot="info" class="info">
+    Pos: <span id="pos">0</span> m — Vel: <span id="velDisp">0</span> m/s — Acel: <span id="acc">0</span> m/s²
+    <br>
+    Fuerzas: F_aplicada: <span id="Fapp">0</span> N — F_fric: <span id="Ffric">0</span> N — F_net: <span id="Fnet">0</span> N
+  </div>
 
   <script type="module" src="../../main.js"></script>
 </body>

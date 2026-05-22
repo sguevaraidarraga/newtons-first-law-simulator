@@ -1,5 +1,6 @@
 import { computeFriction, computeNetForce, integrate1D } from '../../src/physics.js';
 import { drawArrow, drawBall } from '../../src/draw.js';
+import { ensureButton, setButtonLabel } from '../../src/ui.js';
 
 export default function init1D(){
   const canvas = document.getElementById('sim');
@@ -52,6 +53,9 @@ export default function init1D(){
   const posSpan = document.getElementById('pos');
   const velSpan = document.getElementById('velDisp');
   const accSpan = document.getElementById('acc');
+  const FappSpan = document.getElementById('Fapp');
+  const FfricSpan = document.getElementById('Ffric');
+  const FnetSpan = document.getElementById('Fnet');
   const massValEl = document.getElementById('massVal');
   const velValEl = document.getElementById('velVal');
   const forceValEl = document.getElementById('forceVal');
@@ -59,6 +63,23 @@ export default function init1D(){
 
   let state = { x:2, vx:parseFloat(velEl.value||0), ax:0, mass:parseFloat(massEl.value||1) };
   let running = false; let last = null;
+  let lastForces = { Fapp: 0, Ffric: 0, Fnet: 0 };
+  const initialState = { x: state.x, vx: state.vx, ax: state.ax, mass: state.mass };
+  // ensure reset button exists (in HTML or create it)
+  const resetBtn = ensureButton(startBtn.parentElement, 'reset', 'Reset');
+
+  function doReset(){
+    running = false; setButtonLabel(startBtn, 'Iniciar');
+    state.x = initialState.x; state.vx = initialState.vx; state.ax = initialState.ax; state.mass = initialState.mass;
+    last = null; lastForces = { Fapp:0, Ffric:0, Fnet:0 };
+    if (massValEl) massValEl.textContent = parseFloat(state.mass).toFixed(1);
+    if (velValEl) velValEl.textContent = parseFloat(state.vx).toFixed(1);
+    if (FappSpan) FappSpan.textContent = '0.00';
+    if (FfricSpan) FfricSpan.textContent = '0.00';
+    if (FnetSpan) FnetSpan.textContent = '0.00';
+    draw();
+  }
+  resetBtn.addEventListener('click', doReset);
 
   // initialize displayed values
   if (massValEl) massValEl.textContent = parseFloat(massEl.value).toFixed(1);
@@ -81,8 +102,15 @@ export default function init1D(){
     const py = canvas.height/2;
     drawBall(ctx, px, py, 12);
     drawArrow(ctx, px, py-20, px + state.vx*15, py-20, '#2a9d8f');
-    if (contEl.checked && Math.abs(parseFloat(forceEl.value))>0){
-      drawArrow(ctx, px, py+20, px + parseFloat(forceEl.value)*0.6, py+20, '#e76f51');
+    // draw applied, friction and net forces for debugging
+    if (Math.abs(lastForces.Fapp) > 1e-3){
+      drawArrow(ctx, px, py+10, px + lastForces.Fapp*0.6, py+10, '#e76f51');
+    }
+    if (Math.abs(lastForces.Ffric) > 1e-3){
+      drawArrow(ctx, px, py+30, px + lastForces.Ffric*0.6, py+30, '#6c757d');
+    }
+    if (Math.abs(lastForces.Fnet) > 1e-3){
+      drawArrow(ctx, px, py+50, px + lastForces.Fnet*0.6, py+50, '#d62828');
     }
   }
 
@@ -90,6 +118,10 @@ export default function init1D(){
     const Fapp = contEl.checked ? parseFloat(forceEl.value) : 0;
     const Ffric = computeFriction(state.mass, state.vx, parseFloat(muEl.value||0), fricEl.checked);
     const Fnet = computeNetForce(Fapp, Ffric);
+    // store for drawing/debug
+    lastForces.Fapp = Fapp;
+    lastForces.Ffric = Ffric;
+    lastForces.Fnet = Fnet;
     integrate1D(state, Fnet, dt);
     const maxX = (canvas.width - 80)/60;
     if (state.x < 0){ state.x = 0; state.vx = 0; }
@@ -97,6 +129,9 @@ export default function init1D(){
     posSpan.textContent = state.x.toFixed(2);
     velSpan.textContent = state.vx.toFixed(2);
     accSpan.textContent = state.ax.toFixed(2);
+    if (FappSpan) FappSpan.textContent = (lastForces.Fapp||0).toFixed(2);
+    if (FfricSpan) FfricSpan.textContent = (lastForces.Ffric||0).toFixed(2);
+    if (FnetSpan) FnetSpan.textContent = (lastForces.Fnet||0).toFixed(2);
   }
 
   function loop(ts){ if (!running) return; if (!last) last = ts; const dt = Math.min(0.05, (ts-last)/1000); last = ts; step(dt); draw(); requestAnimationFrame(loop); }

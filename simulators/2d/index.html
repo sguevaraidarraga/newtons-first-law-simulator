@@ -63,12 +63,17 @@
       <div class="buttons">
         <button id="impulse">Impulso (clic en lienzo)</button>
         <button id="start">Iniciar</button>
+        <button id="reset">Reset</button>
         <a href="../../index.html" style="margin-left:8px">Volver</a>
       </div>
     </div>
   </div>
 
-  <div data-slot="info" class="info">Pos: (<span id="posx">0</span>, <span id="posy">0</span>) m — Vel: (<span id="velx">0</span>, <span id="vely">0</span>) m/s</div>
+  <div data-slot="info" class="info">
+    Pos: (<span id="posx">0</span>, <span id="posy">0</span>) m — Vel: (<span id="velx">0</span>, <span id="vely">0</span>) m/s
+    <br>
+    Fuerzas: F_aplicada: (<span id="Fappx">0</span>, <span id="Fappy">0</span>) N — F_fric: (<span id="Ffricx">0</span>, <span id="Ffricy">0</span>) N — F_net: (<span id="Fnetx">0</span>, <span id="Fnety">0</span>) N
+  </div>
 
   <script type="module" src="../../main.js"></script>
 </body>
